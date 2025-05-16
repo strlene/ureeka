@@ -1,3 +1,7 @@
+[TOLONG DIBACA]
+
+Ini repo baru, sudah saya salib ulang semua tugas dari sesi lain per session branch. Terima kasih ja
+
 # flutterapp
 
 A new Flutter project.
