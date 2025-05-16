@@ -1,152 +1,131 @@
 import 'package:flutter/material.dart';
 
-// MODEL CLASS: Represents a Task (OOP: Class + Encapsulation)
-class Task {
-  final String title;
-  bool isCompleted;
+void main() => runApp(const TodoApp());
 
-  Task({required this.title, this.isCompleted = false});
-
-  void toggleComplete() {
-    isCompleted = !isCompleted;
-  }
-}
-
-// TASK MANAGER: Manages the list of tasks (OOP: Abstraction + SRP)
-class TaskManager {
-  final List<Task> _tasks = [];
-
-  List<Task> get tasks => _tasks;
-
-  void addTask(String title) {
-    _tasks.add(Task(title: title));
-  }
-
-  void removeTask(int index) {
-    _tasks.removeAt(index);
-  }
-
-  void toggleTask(int index) {
-    _tasks[index].toggleComplete();
-  }
-}
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TodoApp extends StatelessWidget {
+  const TodoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'OOP Task Manager',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-      ),
-      home: const TaskPage(title: 'OOP Task Manager'),
+      title: 'Todo App List',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const TodoList(),
     );
   }
 }
 
-class TaskPage extends StatefulWidget {
-  const TaskPage({super.key, required this.title});
-  final String title;
+class TodoList extends StatefulWidget {
+  const TodoList({super.key});
 
   @override
-  State<TaskPage> createState() => _TaskPageState();
+  State<TodoList> createState() => _TodoListState();
 }
 
-class _TaskPageState extends State<TaskPage> {
-  final TaskManager _taskManager = TaskManager();
+class _TodoListState extends State<TodoList> {
+  final List<String> _todos = [];
   final TextEditingController _controller = TextEditingController();
 
-  void _addTask() {
-    String taskTitle = _controller.text.trim();
-    if (taskTitle.isNotEmpty) {
+  void _addTodo() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
       setState(() {
-        _taskManager.addTask(taskTitle);
+        _todos.add(text);
         _controller.clear();
       });
     }
   }
 
-  void _toggleComplete(int index) {
-    setState(() {
-      _taskManager.toggleTask(index);
-    });
+  void _confirmDelete(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Task'),
+          content: const Text('Are you sure you want to delete this todo?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _todos.removeAt(index);
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _removeTask(int index) {
-    setState(() {
-      _taskManager.removeTask(index);
-    });
+  Widget _buildTodoItem(String task, int index) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        title: Text(task),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () => _confirmDelete(index),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text(
+          'To do List',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Input field
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      labelText: 'Enter task',
-                      border: OutlineInputBorder(),
-                    ),
+        padding: const EdgeInsets.all(16),
+        child: ListView.builder(
+          itemCount: _todos.length,
+          itemBuilder: (context, index) {
+            return _buildTodoItem(_todos[index], index);
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Add Todo'),
+                content: TextField(
+                  controller: _controller,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter todo item',
                   ),
                 ),
-                const SizedBox(width: 10),
-                ElevatedButton(onPressed: _addTask, child: const Text("Add")),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Task list
-            Expanded(
-              child: ListView.builder(
-                itemCount: _taskManager.tasks.length,
-                itemBuilder: (context, index) {
-                  final task = _taskManager.tasks[index];
-                  return ListTile(
-                    leading: IconButton(
-                      icon: Icon(
-                        task.isCompleted
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
-                        color: task.isCompleted ? Colors.green : Colors.grey,
-                      ),
-                      onPressed: () => _toggleComplete(index),
-                    ),
-                    title: Text(
-                      task.title,
-                      style: TextStyle(
-                        decoration:
-                            task.isCompleted
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                      ),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removeTask(index),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      _addTodo();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        tooltip: 'Add Todo',
+        child: const Icon(Icons.add),
       ),
     );
   }
