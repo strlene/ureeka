@@ -1,131 +1,65 @@
 import 'package:flutter/material.dart';
+import 'presentation/screen/home.dart';
+import 'presentation/screen/cart.dart';
+import 'presentation/screen/search.dart';
 
-void main() => runApp(const TodoApp());
+void main() {
+  runApp(PerfumeMarketplaceApp());
+}
 
-class TodoApp extends StatelessWidget {
-  const TodoApp({super.key});
-
+// Main App Class - Entry point of our application
+class PerfumeMarketplaceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Todo App List',
+      title: 'Perfume Marketplace',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const TodoList(),
-    );
-  }
-}
-
-class TodoList extends StatefulWidget {
-  const TodoList({super.key});
-
-  @override
-  State<TodoList> createState() => _TodoListState();
-}
-
-class _TodoListState extends State<TodoList> {
-  final List<String> _todos = [];
-  final TextEditingController _controller = TextEditingController();
-
-  void _addTodo() {
-    final text = _controller.text.trim();
-    if (text.isNotEmpty) {
-      setState(() {
-        _todos.add(text);
-        _controller.clear();
-      });
-    }
-  }
-
-  void _confirmDelete(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete Task'),
-          content: const Text('Are you sure you want to delete this todo?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _todos.removeAt(index);
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
+      theme: ThemeData(
+        primarySwatch: Colors.purple,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Roboto',
+      ),
+      home: MainNavigationScreen(),
+      routes: {
+        '/home': (context) => HomeScreen(),
+        '/cart': (context) => CartScreen(),
+        '/search': (context) => SearchScreen(),
       },
     );
   }
+}
 
-  Widget _buildTodoItem(String task, int index) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        title: Text(task),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () => _confirmDelete(index),
-        ),
-      ),
-    );
-  }
+// Main Navigation Screen with Bottom Navigation Bar
+class MainNavigationScreen extends StatefulWidget {
+  @override
+  _MainNavigationScreenState createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  int _currentIndex = 0;
+
+  // List of screens for navigation
+  final List<Widget> _screens = [HomeScreen(), SearchScreen(), CartScreen()];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'To do List',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: _todos.length,
-          itemBuilder: (context, index) {
-            return _buildTodoItem(_todos[index], index);
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text('Add Todo'),
-                content: TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter todo item',
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      _addTodo();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Add'),
-                  ),
-                ],
-              );
-            },
-          );
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
         },
-        tooltip: 'Add Todo',
-        child: const Icon(Icons.add),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+        ],
       ),
     );
   }
